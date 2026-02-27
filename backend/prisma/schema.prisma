@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum TicketStatus {
+  ACTIVE
+  PENDING_TRANSFER
+  USED
+  CANCELLED
+}
+
+enum TransferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+model User {
+  id               String            @id @default(uuid())
+  name             String
+  email            String            @unique
+  passwordHash     String
+  role             Role              @default(USER)
+  createdAt        DateTime          @default(now())
+
+  events           Event[]           // Admin events
+  bookings         Booking[]         
+  ownedTickets     Ticket[]          
+  sentTransfers    TransferRequest[] @relation("SentTransfers")
+  receivedTransfers TransferRequest[] @relation("ReceivedTransfers")
+}
+
+model Event {
+  id                String     @id @default(uuid())
+  title             String
+  date              DateTime
+  totalCapacity     Int
+  availableCapacity Int
+  adminId           String
+  admin             User       @relation(fields: [adminId], references: [id])
+  createdAt         DateTime   @default(now())
+
+  bookings          Booking[]
+  tickets           Ticket[]
+}
+
+model Booking {
+  id        String   @id @default(uuid())
+  userId    String
+  eventId   String
+  quantity  Int
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+  event     Event    @relation(fields: [eventId], references: [id])
+  tickets   Ticket[]
+}
+
+model Ticket {
+  id        String       @id @default(uuid())
+  bookingId String
+  eventId   String
+  ownerId   String
+  status    TicketStatus @default(ACTIVE)
+
+  booking   Booking      @relation(fields: [bookingId], references: [id])
+  event     Event        @relation(fields: [eventId], references: [id])
+  owner     User         @relation(fields: [ownerId], references: [id])
+
+  transferRequests TransferRequest[]
+}
+
+model TransferRequest {
+  id         String         @id @default(uuid())
+  ticketId   String
+  senderId   String
+  receiverId String
+  status     TransferStatus @default(PENDING)
+  expiresAt  DateTime
+  createdAt  DateTime       @default(now())
+
+  ticket     Ticket         @relation(fields: [ticketId], references: [id])
+  sender     User           @relation("SentTransfers", fields: [senderId], references: [id])
+  receiver   User           @relation("ReceivedTransfers", fields: [receiverId], references: [id])
+}
