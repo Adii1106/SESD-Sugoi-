@@ -96,4 +96,18 @@ export class TransferService {
       }
     });
   }
+
+  static async getOutgoingTransfers(userId: string) {
+    return prisma.transferRequest.findMany({
+      where: { senderId: userId, status: 'PENDING' },
+      include: {
+        receiver: { select: { email: true, name: true } },
+        ticket: { 
+          include: { 
+            event: { select: { title: true, date: true } } 
+          } 
+        }
+      }
+    });
+  }
 }
