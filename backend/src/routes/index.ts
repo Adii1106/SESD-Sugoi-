@@ -21,6 +21,7 @@ router.get('/bookings/my-tickets', authenticateJWT, BookingController.getMyTicke
 
 // Ticket Transfer Engine
 router.get('/transfers/incoming', authenticateJWT, TransferController.getIncoming);
+router.get('/transfers/outgoing', authenticateJWT, TransferController.getOutgoing);
 router.post('/transfers', authenticateJWT, TransferController.initiate);
 router.post('/transfers/:transferId/accept', authenticateJWT, TransferController.accept);
 router.post('/transfers/:transferId/reject', authenticateJWT, TransferController.reject);

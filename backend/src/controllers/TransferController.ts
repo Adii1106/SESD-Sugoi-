@@ -56,4 +56,16 @@ export class TransferController {
       next(err);
     }
   }
+
+  static async getOutgoing(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const senderId = req.user?.userId;
+      if (!senderId) return res.status(401).json({ error: 'Unauthorized session' });
+
+      const outgoing = await TransferService.getOutgoingTransfers(senderId);
+      res.json(outgoing);
+    } catch (err) {
+      next(err);
+    }
+  }
 }
